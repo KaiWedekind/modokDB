@@ -1,6 +1,6 @@
 {
   "name": "modokDB",
-  "version": "0.0.0",
+  "version": "0.0.1-0",
   "description": "In-memory Database",
   "main": "dist/index.js",
   "scripts": {
@@ -77,7 +77,8 @@
   "babel": {
     "presets": [
       [
-        "env", "es2015"
+        "env",
+        "es2015"
       ]
     ],
     "env": {
