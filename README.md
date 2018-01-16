@@ -1,4 +1,4 @@
-![opensource](https://i.pinimg.com/564x/ac/c1/b2/acc1b2ca345d4b7f296d5c42d3ecd61f--lego-marvel-super-heroes-marvel-avengers.jpg)
+![modokdb](https://vignette.wikia.nocookie.net/marveldatabase/images/5/57/D.E.A.D.P.O.O.L..jpeg/revision/latest?cb=20130911033409)
 
 # modokDB
 
