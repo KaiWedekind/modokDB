@@ -1,5 +1,5 @@
 {
-  "name": "modokDB",
+  "name": "modokdb",
   "version": "0.0.1-0",
   "description": "In-memory Database",
   "main": "dist/index.js",

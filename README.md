@@ -4,7 +4,7 @@
 
 #### In-memory Database
 
-[![NPM](https://nodei.co/npm/modokDB.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/modokDB/)
+[![NPM](https://nodei.co/npm/modokdb.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/modokdb/)
 
 [![Travis](https://img.shields.io/travis/KaiWedekind/modokDB.svg)]()
 [![Codecov](https://img.shields.io/codecov/c/github/KaiWedekind/modokDB.svg)]()
