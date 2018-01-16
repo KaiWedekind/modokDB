@@ -26,11 +26,10 @@
   "files": [
     "dist"
   ],
-  "dependencies": {
-    "babel-polyfill": "6.26.0"
-  },
+  "dependencies": {},
   "peerDependencies": {},
   "devDependencies": {
+    "babel-polyfill": "6.26.0",
     "babel-cli": "6.26.0",
     "babel-loader": "7.1.2",
     "babel-plugin-istanbul": "4.1.4",
