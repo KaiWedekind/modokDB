@@ -26,7 +26,7 @@ modokDB is a high performant and convenient method for storing data without sett
 
 ## Installation
 
-This module is distributed via [npm](https://www.npmjs.com/) which is bundled with [node](https://nodejs.org/) and should be installed as one of your project dependencies:
+This module is distributed via [npm](https://www.npmjs.com/) which is bundled with [node](https://nodejs.org/) and should be installed as one of your project's `dependencies`:
 
 ```
 npm install --save modokDB
