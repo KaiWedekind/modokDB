@@ -4,6 +4,8 @@
 
 #### In-memory Database
 
+modokDB is a small high performant in-memory database powered by JavaScript Maps (supports Node, Electron and the browser)
+
 [![NPM](https://nodei.co/npm/modokdb.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/modokdb/)
 
 [![Travis](https://img.shields.io/travis/KaiWedekind/modokDB.svg)]()
@@ -17,14 +19,14 @@
 [![CodeOfConduct](https://img.shields.io/badge/code%20of-conduct-ff69b4.svg)]()
 
 ## The Problem
-
+You are looking for a database that is simple and without any dependencies to install.
 
 ## The Solution
-
+modokDB is a high performant and convenient method for storing data without setting up a database server. It is fast and excelent to be used as an embedded database.
 
 ## Installation
 
-This module is distributed via [npm](https://www.npmjs.com/) which is bundled with [node](https://nodejs.org/) and should be installed as one of your project's `dependencies`:
+This module is distributed via [npm](https://www.npmjs.com/) which is bundled with [node](https://nodejs.org/) and should be installed as one of your project dependencies:
 
 ```
 npm install --save modokDB
@@ -32,7 +34,29 @@ npm install --save modokDB
 
 ## Usage
 
-## Examples
+```javascript
+const Modok = require('modokdb');
+
+const users = new Modok('users');
+
+users.insert(1, { first_name: 'John', last_name: 'Doe' });
+users.insert(2, { first_name: 'Jane', last_name: 'Doe' });
+
+const john_doe = users.findOne(1);
+
+users.update(1, { first_name: 'Jonas', last_name: 'Doe'})
+
+const john_does = users.find({ last_name: 'Doe' });
+
+console.log(users.has(2));
+console.log(users.findOne(1));
+
+const usersRef = Modok('users');
+
+const results = users.find({ last_name: 'Doe' });
+const resultsRef = usersRef.find({ last_name: 'Doe' });
+
+```
 
 ## Contributors
 
