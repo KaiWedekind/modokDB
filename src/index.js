@@ -1,6 +1,146 @@
+/* eslint no-underscore-dangle: 0 */
+/* eslint no-unneeded-ternary: 0 */
+
+const fs = require('fs');
+const path = require('path');
+const EventEmitter = require('events');
+
+const ModokEmitter = new EventEmitter();
+
+/* HELPER */
+
+function uuid() {
+  return Math.random().toString(26).slice(2);
+}
+
+function newDatabaseFile(filePath, fileName) {
+  return new Promise((resolve, reject) => {
+    const filePathChunks = filePath.split('/');
+
+    let breadcrumb = '';
+    for (let i = 0; i < filePathChunks.length; i += 1) {
+      if (filePathChunks[i]) {
+        breadcrumb += `/${filePathChunks[i]}`;
+        if (!fs.existsSync(breadcrumb)) {
+          fs.mkdirSync(breadcrumb);
+        }
+      }
+    }
+
+    fs.writeFile(`${filePath}/${fileName}.json`, JSON.stringify({}), 'utf8', (err) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve();
+    });
+  });
+}
+
+function readDatabaseFile(filePath, fileName) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(`${filePath}/${fileName}.json`, 'utf8', (err, data) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(data);
+    });
+  });
+}
+
+function writeDatabaseFile(filePath, fileName, content) {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(`${filePath}/${fileName}.json`, JSON.stringify(content), 'utf8', (err) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(JSON.stringify(content));
+    });
+  });
+}
+
+function readDatabaseStats(filePath, fileName) {
+  return new Promise((resolve, reject) => {
+    if (filePath && fileName) {
+      fs.open(`${filePath}/${fileName}.json`, 'r', (err, fd) => {
+        if (err) {
+          return reject(err);
+        }
+
+        if (fd) {
+          fs.fstat(fd, (_err, stats) => {
+            if (_err) {
+              return reject(_err);
+            }
+            return resolve(stats);
+          });
+        }
+        return reject('No file descriptor found');
+      });
+    }
+
+    return resolve('No file stats given');
+  });
+}
+
+function readDatabaseStatsSync(filePath, fileName) {
+  if (!filePath || !fileName) {
+    return 'No file stats given';
+  }
+
+  const fd = fs.openSync(`${filePath}/${fileName}.json`, 'r');
+  return fs.fstatSync(fd);
+}
+
+function resolveData(object) {
+  let id = object._id;
+  if (id === undefined || id === null) {
+    id = uuid();
+  }
+  const data = object;
+  data._id = id;
+  data.created_at = new Date();
+  this.store.set(id, data);
+
+  writeDatabaseFile(this.filePath, this.fileName, Array.from(this.store.values()));
+
+  return this.store.get(id);
+}
+
+function isObject(item) {
+  return (!!item) && (item.constructor === Object);
+}
+
+function isArray(item) {
+  return (!!item) && (item.constructor === Array);
+}
+
+/* Core */
+
 const Brainstack = {};
 
-const Brain = function Brain(name) {
+const Brain = function Brain(name, config) {
+  if (config && isObject(config)) {
+    this.filePath = typeof config.filepath === 'string' ? path.resolve(config.filepath) : null;
+    this.fileName = config.filename ? config.filename : name;
+    this.writeToFile = fs && isObject(fs) && !this.filePath;
+
+    if (!fs.existsSync(`${this.filePath}/${this.fileName}.json`)) {
+      newDatabaseFile(this.filePath, this.fileName).then(() => {
+        ModokEmitter.emit('ready');
+      });
+    } else if (this.filePath && this.fileName) {
+      readDatabaseFile(this.filePath, this.fileName).then((content) => {
+        this.$insertMany(JSON.parse(content)).then(() => {
+          ModokEmitter.emit('ready');
+        });
+      });
+    } else {
+      ModokEmitter.emit('ready');
+    }
+  } else {
+    ModokEmitter.emit('ready');
+  }
+
   if (!name) {
     throw Error('Name is required');
   }
@@ -12,61 +152,480 @@ const Brain = function Brain(name) {
     }
   } else {
     this.store = new Map();
+    this.name = name;
     Brainstack[name] = this;
   }
 
   return this;
 };
 
-Brain.prototype.has = function has(index) {
-  return this.store.get(index) !== undefined;
+/**
+ * ready
+ * Returns a promise.
+ */
+
+Brain.prototype.ready = (function ready() {
+  return new Promise((resolve) => {
+    ModokEmitter.on('ready', () => resolve());
+  });
+}());
+
+/**
+ * has / $has
+ * Returns a boolean asserting whether a value has been
+ * associated to the index in the database or not.
+ */
+
+// Synchronous
+Brain.prototype.has = function has(_id) {
+  return this.store.has(_id);
 };
 
-Brain.prototype.update = function update(index, fields) {
-  if (!index || !this.store.get(index)) {
-    return 'Index not found';
-  }
-
-  if (!fields) {
-    return 'fields not found';
-  }
-
-  let value = this.store.get(index);
-  value = Object.assign(value, fields);
-  this.store.set(index, value);
-
-  return value;
+// Asynchronous
+Brain.prototype.$has = function $has(_id) {
+  return new Promise((resolve) => {
+    resolve(this.store.has(_id));
+  });
 };
 
-Brain.prototype.insert = function insert(index, value) {
+/**
+ * insert / $insert
+ * Inserts a document or documents into a collection.
+ * _id: If the document does not specify an _id field,
+ * then modokDB will add the _id field and assign a
+ * unique id for the document before inserting.
+ * If the document contains an _id field, the _id value
+ * must be unique within the collection to avoid overwrites.
+ */
+
+// Synchronous
+Brain.prototype.insert = function insert(object) {
+  if (object && Array.isArray(object)) {
+    const list = [];
+    for (let i = 0; i < object.length; i += 1) {
+      list.push(resolveData.call(this, object[i]));
+    }
+    return list;
+  }
+  return resolveData.call(this, object);
+};
+
+// Asynchronous
+Brain.prototype.$insert = function $insert(object) {
+  return new Promise((resolve) => {
+    resolve(this.insert(object));
+  });
+};
+
+/**
+ * insertOne / $insertOne
+ * Inserts a document into a collection.
+ * _id: If the document does not specify an _id field,
+ * then modokDB will add the _id field and assign a
+ * unique id for the document before inserting.
+ * If the document contains an _id field, the _id value
+ * must be unique within the collection to avoid overwrites.
+ */
+
+// Synchronous
+Brain.prototype.insertOne = function insertOne(object) {
+  if (isObject(object)) {
+    return this.insert(object);
+  }
+
+  return null;
+};
+
+// Asynchronous
+Brain.prototype.$insertOne = function $insertOne(object) {
+  return new Promise((resolve) => {
+    if (isObject(object)) {
+      return resolve(this.insert(object));
+    }
+    return resolve(null);
+  });
+};
+
+/**
+ * insertMany / $insertMany
+ * Inserts multiple documents into a collection.
+ * _id: If the document does not specify an _id field,
+ * then modokDB will add the _id field and assign a
+ * unique id for the document before inserting.
+ * If the document contains an _id field, the _id value
+ * must be unique within the collection to avoid overwrites.
+ */
+
+// Synchronous
+Brain.prototype.insertMany = function insertMany(object) {
+  if (isArray(object)) {
+    return this.insert(object);
+  }
+
+  return null;
+};
+
+// Asynchronous
+Brain.prototype.$insertMany = function $insertMany(object) {
+  return new Promise((resolve) => {
+    if (isArray(object)) {
+      return resolve(this.insert(object));
+    }
+    return resolve(null);
+  });
+};
+
+/**
+ * find / $find
+ * Selects documents in a collection or view and returns a cursor to the selected documents.
+ */
+
+// Synchronous
+Brain.prototype.find = function find(object) {
+  if (isObject(object)) {
+    const keys = Object.keys(object);
+    const values = Object.values(object);
+    let foundById = null;
+    let countById = 0;
+
+    if (object._id !== undefined) {
+      const document = this.store.get(object._id);
+
+      for (let i = 0; i < keys.length; i += 1) {
+        if (document[keys[i]] === values[i]) {
+          countById += 1;
+        }
+      }
+
+      if (countById === keys.length) {
+        foundById = document;
+      }
+
+      return foundById;
+    }
+
+    const found = [];
+    this.store.forEach((value) => {
+      let count = 0;
+
+      for (let i = 0; i < keys.length; i += 1) {
+        if (value[keys[i]] === values[i]) {
+          count += 1;
+        }
+      }
+
+      if (count === keys.length) {
+        found.push(value);
+      }
+    }, this.store);
+    return (found && found.length > 0) ? found : null;
+  } else if (object === undefined) {
+    return Array.from(this.store.values());
+  }
+
+  return null;
+};
+
+// Asynchronous
+Brain.prototype.$find = function $find(object) {
+  return new Promise((resolve) => {
+    resolve(this.find(object));
+  });
+};
+
+/**
+ * findOne / $findOne
+ * Returns one document that satisfies the specified query criteria on the collection or view.
+ * If multiple documents satisfy the query, this method returns the first document according to
+ * the natural order which reflects the order of documents on the disk. In capped collections,
+ * natural order is the same as insertion order. If no document satisfies the query,
+ * the method returns null.
+ */
+
+// Synchronous
+Brain.prototype.findOne = function findOne(object) {
+  if (isObject(object)) {
+    const keys = Object.keys(object);
+    const values = Object.values(object);
+    let foundById = null;
+    let countById = 0;
+
+    if (object._id) {
+      const document = this.store.get(object._id);
+
+      for (let i = 0; i < keys.length; i += 1) {
+        if (document[keys[i]] === values[i]) {
+          countById += 1;
+        }
+      }
+
+      if (countById === keys.length) {
+        foundById = document;
+      }
+
+      return foundById;
+    }
+
+    const found = [];
+    this.store.forEach((value) => {
+      let count = 0;
+
+      for (let i = 0; i < keys.length; i += 1) {
+        if (value[keys[i]] === values[i]) {
+          count += 1;
+        }
+      }
+
+      if (count === keys.length && found.length < 1) {
+        found.push(value);
+      }
+    }, this.store);
+    return (found && found.length > 0) ? found : {};
+  } else if (object === undefined) {
+    return Array.from(this.store.values());
+  }
+
+  return null;
+};
+
+// Asynchronous
+Brain.prototype.$findOne = function $findOne(object) {
+  return new Promise((resolve) => {
+    const result = this.findOne(object);
+    if (isArray(result) && result.length > 0) {
+      return resolve(result[0]);
+    }
+    return resolve(result);
+  });
+};
+
+/**
+ * update / $update
+ * Modifies an existing document or documents in a collection.
+ * The method can modify specific fields of an existing document or
+ * documents or replace an existing document entirely, depending on the update parameter.
+ */
+
+// Synchronous
+Brain.prototype.update = function update(_query, _update, _config) {
+  const MergedDocuments = [];
+  const documents = this.find(_query);
+  if (documents && isArray(documents) && documents.length > 0) {
+    for (let i = 0; i < documents.length; i += 1) {
+      MergedDocuments.push(Object.assign(documents[i], _update));
+    }
+    return this.insert(MergedDocuments);
+  } else if (documents && isObject(documents)) {
+    return this.insert(Object.assign(documents, _update));
+  } else if (_config && isObject(_config) && _config.upsert === true) {
+    return this.insert(_update);
+  }
+  return null;
+};
+
+// Asynchronous
+Brain.prototype.$update = function $update(_query, _update, _config) {
+  return new Promise((resolve) => {
+    this.$find(_query).then((documents) => {
+      if (documents && isArray(documents) && documents.length > 0) {
+        const MergedDocuments = [];
+        for (let i = 0; i < documents.length; i += 1) {
+          MergedDocuments.push(Object.assign(documents[i], _update));
+        }
+        resolve(this.$insert(MergedDocuments));
+      } else if (documents && isObject(documents)) {
+        resolve(this.$insert(Object.assign(documents, _update)));
+      } else if (_config && isObject(_config) && _config.upsert === true) {
+        resolve(this.$insert(_update));
+      }
+    });
+  });
+};
+
+/**
+ * updateOne / $updateOne
+ * Modifies a single existing document in a collection.
+ * The method can modify specific fields of an existing document or
+ * replace an existing document entirely, depending on the update parameter.
+ */
+
+// Synchronous
+Brain.prototype.updateOne = function updateOne(_query, _update, _config) {
+  const documents = this.find(_query);
+  if (documents && isArray(documents) && documents.length > 0) {
+    return this.insert(Object.assign(documents[0], _update));
+  } else if (documents && isObject(documents)) {
+    return this.insert(Object.assign(documents, _update));
+  } else if (_config && isObject(_config) && _config.upsert === true) {
+    return this.insert(_update);
+  }
+  return null;
+};
+
+// Asynchronous
+Brain.prototype.$updateOne = function $updateOne(_query, _update, _config) {
+  return new Promise((resolve) => {
+    this.$find(_query).then((documents) => {
+      if (documents && isArray(documents) && documents.length > 0) {
+        return resolve(this.$insert(Object.assign(documents[0], _update)));
+      } else if (documents && isObject(documents)) {
+        return resolve(this.$insert(Object.assign(documents, _update)));
+      } else if (_config && isObject(_config) && _config.upsert === true) {
+        return resolve(this.$insert(_update));
+      }
+      return resolve(null);
+    });
+  });
+};
+
+/**
+ * updateMany / $updateMany
+ * Modifies an existing document or documents in a collection.
+ * The method can modify specific fields of an existing document or
+ * documents or replace an existing document entirely, depending on the update parameter.
+ */
+
+// Synchronous
+Brain.prototype.updateMany = Brain.prototype.update;
+
+// Asynchronous
+Brain.prototype.$updateMany = Brain.prototype.$update;
+
+// Synchronous
+Brain.prototype.count = function count() {
+  return this.store.size;
+};
+
+// Asynchronous
+Brain.prototype.$count = function $count() {
+  return new Promise((resolve) => {
+    resolve(this.store.size);
+  });
+};
+
+// Synchronous
+Brain.prototype.stats = function stats() {
+  return readDatabaseStatsSync(this.filePath, this.fileName);
+};
+
+// Asynchronous
+Brain.prototype.$stats = function $stats() {
+  return new Promise((resolve) => {
+    resolve(readDatabaseStats(this.filePath, this.fileName));
+  });
+};
+
+/*
+
+// TODO
+Brain.prototype.renameCollection = function renameCollection(index, value) {
   return this.store.set(index, value);
 };
 
-Brain.prototype.findOne = function findOne(index) {
-  return this.store.get(index);
+Brain.prototype.drop = function drop() {
+  this.store.clear();
+  return this.store;
 };
 
-Brain.prototype.find = function find(object) {
-  const keys = Object.keys(object);
-  const values = Object.values(object);
-  const found = [];
+*/
 
-  this.store.forEach((value) => {
-    let count = 0;
+/**
+ * deleteOne deletes the first document that matches the filter.
+ * Use a field that is part of a unique index such as _id for precise deletions.
+ */
 
-    for (let i = 0; i < keys.length; i += 1) {
-      if (value[keys[i]] === values[i]) {
-        count += 1;
+/*
+Brain.prototype.deleteOne = function deleteOne(object) {
+  if (object) {
+    const keys = Object.keys(object);
+    const values = Object.values(object);
+    let found = 0;
+    let index = null;
+
+    this.store.forEach((value, key) => {
+      let count = 0;
+
+      for (let i = 0; i < keys.length; i += 1) {
+        if (value[keys[i]] === values[i]) {
+          count += 1;
+        }
       }
-    }
 
-    if (count === keys.length) {
-      found.push(value);
-    }
-  }, this.store);
+      if (count === keys.length && found < 1) {
+        found += 1;
+        index = key;
+      }
+    }, this.store);
 
-  return found;
+    if (index !== null) {
+      return this.store.delete(index);
+    }
+    return false;
+  }
+  return false;
 };
+*/
+
+/**
+ * Removes all documents that match the filter from a collection.
+ */
+
+/*
+Brain.prototype.deleteMany = function deleteMany(object) {
+  if (object) {
+    const keys = Object.keys(object);
+    const values = Object.values(object);
+    const found = [];
+
+    this.store.forEach((value, key) => {
+      let count = 0;
+
+      for (let i = 0; i < keys.length; i += 1) {
+        if (value[keys[i]] === values[i]) {
+          count += 1;
+        }
+      }
+
+      if (count === keys.length) {
+        found.push(key);
+      }
+    }, this.store);
+
+    if (found.length > 0) {
+      for (let i = 0; i < found.length; i += 1) {
+        this.store.delete(found[i]);
+      }
+      return true;
+    }
+    return false;
+  }
+  return false;
+};
+
+Brain.prototype.deleteOneById = function deleteOne(index) {
+  return this.store.delete(index);
+};
+// TODO
+Brain.prototype.findAndModify = function findAndModify(object) {
+  return object;
+};
+// TODO
+Brain.prototype.findOneAndDelete = function findOneAndDelete(object) {
+  return object;
+};
+// TODO
+Brain.prototype.findOneAndReplace = function findOneAndReplace(object) {
+  return object;
+};
+// TODO
+Brain.prototype.findOneAndUpdate = function findOneAndUpdate(object) {
+  return object;
+};
+
+Brain.prototype.getIndexes = function getIndexes() {
+  return Array.from(this.store.keys());
+};
+*/
 
 const main = Brain;
 

@@ -11,6 +11,9 @@ module.exports = {
     library: 'opensource',
     filename: 'index.js',
   },
+  node: {
+    fs: 'empty',
+  },
   module: {
     loaders: [
       {
