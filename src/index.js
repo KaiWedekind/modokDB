@@ -389,7 +389,7 @@ Brain.prototype.findOne = function findOne(object) {
     }, this.store);
     return (found && found.length > 0) ? found : {};
   } else if (object === undefined) {
-    return Array.from(this.store.values());
+    return Array.from(this.store.values())[0] || null;
   }
 
   return null;

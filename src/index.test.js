@@ -112,5 +112,138 @@ describe('modokDB', () => {
         expect(db.$insertMany({ _id: 0, first_name: 'John', last_name: 'Doe', age: 29 })).to.eventually.be.equal(null);
       });
     });
+
+    describe('find / $find', () => {
+      it('should return all db entities with db.find()', () => {
+        expect(db.find()).to.be.an('array');
+      });
+
+      it('should return all db entities with db.$find()', () => {
+        expect(db.$find()).to.eventually.be.an('array');
+      });
+
+      it('should return all db entities with parameter of undefined for db.find()', () => {
+        expect(db.find(undefined)).to.be.an('array');
+      });
+
+      it('should return all db entities with parameter of undefined for db.$find()', () => {
+        expect(db.$find(undefined)).to.eventually.be.an('array');
+      });
+
+      it('should return null with parameter of string for db.find()', () => {
+        expect(db.find('hello')).to.be.equal(null);
+      });
+
+      it('should return null with parameter of string for db.$find()', () => {
+        expect(db.$find('hello')).to.eventually.be.equal(null);
+      });
+
+      it('should return null with parameter of number for db.$find()', () => {
+        expect(db.$find(100)).to.eventually.be.equal(null);
+      });
+
+      it('should return null with parameter of null for db.find()', () => {
+        expect(db.find(null)).to.be.equal(null);
+      });
+
+      it('should return null with parameter of null for db.$find()', () => {
+        expect(db.$find(null)).to.eventually.be.equal(null);
+      });
+    });
+
+    describe('findOne / $findOne', () => {
+      describe('no entries', () => {
+        it('should return null with db.findOne() when there is no entry in the database', () => {
+          expect(db.findOne()).to.be.equal(null);
+        });
+
+        it('should return null with db.$findOne() when there is no entry in the database', () => {
+          expect(db.$findOne()).to.eventually.be.equal(null);
+        });
+
+        it('should return null with parameter of undefined for db.findOne() when there is no entry in the database', () => {
+          expect(db.findOne(undefined)).to.be.equal(null);
+        });
+
+        it('should return null with parameter of undefined for db.$findOne() when there is no entry in the database', () => {
+          expect(db.$findOne(undefined)).to.eventually.be.equal(null);
+        });
+      });
+
+      describe('multiple entries', () => {
+        beforeEach(() => {
+          db.insertMany([{ _id: 0, first_name: 'John', last_name: 'Doe', age: 29 },
+            { _id: 1, first_name: 'Jane', last_name: 'Doe', age: 27 }]);
+        });
+
+        it('should return the first object with db.findOne() when there are multiple entries in the database', () => {
+          expect(db.findOne()).to.be.an('object');
+        });
+
+        it('should return the first object with params _id, first_name, last_name, age and created_at with db.findOne() when there are multiple entries in the database', () => {
+          expect(db.findOne()).to.have.property('_id');
+          expect(db.findOne()).to.have.property('first_name');
+          expect(db.findOne()).to.have.property('last_name');
+          expect(db.findOne()).to.have.property('age');
+          expect(db.findOne()).to.have.property('created_at');
+        });
+
+        it('should return the first object with db.$findOne() when there are multiple entries in the database', () => {
+          expect(db.$findOne()).to.eventually.be.an('object');
+        });
+
+        it('should return the first object with params _id, first_name, last_name, age and created_at with db.$findOne() when there are multiple entries in the database', () => {
+          expect(db.$findOne()).to.eventually.have.property('_id');
+          expect(db.$findOne()).to.eventually.have.property('first_name');
+          expect(db.$findOne()).to.eventually.have.property('last_name');
+          expect(db.$findOne()).to.eventually.have.property('age');
+          expect(db.$findOne()).to.eventually.have.property('created_at');
+        });
+
+        it('should return the first object with parameter of undefined for db.findOne() when there are multiple entries in the database', () => {
+          expect(db.findOne(undefined)).to.be.an('object');
+        });
+
+        it('should return the first object with params _id, first_name, last_name, age and created_at with parameter of undefined for db.findOne() when there are multiple entries in the database', () => {
+          expect(db.findOne(undefined)).to.have.property('_id');
+          expect(db.findOne(undefined)).to.have.property('first_name');
+          expect(db.findOne(undefined)).to.have.property('last_name');
+          expect(db.findOne(undefined)).to.have.property('age');
+          expect(db.findOne(undefined)).to.have.property('created_at');
+        });
+
+        it('should return the first object with parameter of undefined for db.$findOne() when there are multiple entries in the database', () => {
+          expect(db.$findOne(undefined)).to.eventually.be.an('object');
+        });
+
+        it('should return the first object with params _id, first_name, last_name, age and created_at with parameter of undefined for db.$findOne() when there are multiple entries in the database', () => {
+          expect(db.$findOne(undefined)).to.eventually.have.property('_id');
+          expect(db.$findOne(undefined)).to.eventually.have.property('first_name');
+          expect(db.$findOne(undefined)).to.eventually.have.property('last_name');
+          expect(db.$findOne(undefined)).to.eventually.have.property('age');
+          expect(db.$findOne(undefined)).to.eventually.have.property('created_at');
+        });
+      });
+
+      it('should return null with parameter of string for db.findOne()', () => {
+        expect(db.findOne('hello')).to.be.equal(null);
+      });
+
+      it('should return null with parameter of string for db.$findOne()', () => {
+        expect(db.$findOne('hello')).to.eventually.be.equal(null);
+      });
+
+      it('should return null with parameter of number for db.$findOne()', () => {
+        expect(db.$findOne(100)).to.eventually.be.equal(null);
+      });
+
+      it('should return null with parameter of null for db.findOne()', () => {
+        expect(db.findOne(null)).to.be.equal(null);
+      });
+
+      it('should return null with parameter of null for db.$findOne()', () => {
+        expect(db.$findOne(null)).to.eventually.be.equal(null);
+      });
+    });
   });
 });
