@@ -49,13 +49,18 @@ function readDatabaseFile(filePath, fileName) {
 
 function writeDatabaseFile(filePath, fileName, content) {
   return new Promise((resolve, reject) => {
-    fs.writeFile(`${filePath}/${fileName}.json`, JSON.stringify(content), 'utf8', (err) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve(JSON.stringify(content));
-    });
-  });
+    if (filePath && fileName && fs.existsSync(`${filePath}/${fileName}.json`)) {
+      fs.writeFile(`${filePath}/${fileName}.json`, JSON.stringify(content), 'utf8', (err) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(JSON.stringify(content));
+      });
+      resolve('test');
+    } else {
+      reject({ message: 'No file write' });
+    }
+  }).then(null, (error) => {});
 }
 
 function readDatabaseStats(filePath, fileName) {
@@ -124,16 +129,18 @@ const Brain = function Brain(name, config) {
     this.fileName = config.filename ? config.filename : name;
     this.writeToFile = fs && isObject(fs) && !this.filePath;
 
-    if (!fs.existsSync(`${this.filePath}/${this.fileName}.json`)) {
-      newDatabaseFile(this.filePath, this.fileName).then(() => {
-        ModokEmitter.emit('ready');
-      });
-    } else if (this.filePath && this.fileName) {
-      readDatabaseFile(this.filePath, this.fileName).then((content) => {
-        this.$insertMany(JSON.parse(content)).then(() => {
+    if (this.filePath && this.fileName) {
+      if (!fs.existsSync(`${this.filePath}/${this.fileName}.json`)) {
+        newDatabaseFile(this.filePath, this.fileName).then(() => {
           ModokEmitter.emit('ready');
         });
-      });
+      } else {
+        readDatabaseFile(this.filePath, this.fileName).then((content) => {
+          this.$insertMany(JSON.parse(content)).then(() => {
+            ModokEmitter.emit('ready');
+          });
+        });
+      }
     } else {
       ModokEmitter.emit('ready');
     }

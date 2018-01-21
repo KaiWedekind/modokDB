@@ -11,10 +11,10 @@ modokDB is a small high performant in-memory database powered by JavaScript Maps
 [![Travis](https://img.shields.io/travis/KaiWedekind/modokDB.svg)]()
 [![Codecov](https://img.shields.io/codecov/c/github/KaiWedekind/modokDB.svg)]()
 [![Issues](https://img.shields.io/github/issues/KaiWedekind/modokDB.svg)](https://github.com/KaiWedekind/modokDB/issues)
-[![Github All Releases](https://img.shields.io/github/downloads/KaiWedekind/modokDB/total.svg)]()
+[![Github All Releases](https://img.shields.io/npm/dt/modokdb.svg)]()
 [![Forks](https://img.shields.io/github/forks/KaiWedekind/modokDB.svg)](https://github.com/KaiWedekind/modokDB/network)
 [![Stars](https://img.shields.io/github/stars/KaiWedekind/modokDB.svg)](https://github.com/KaiWedekind/modokDB/stargazers)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/KaiWedekind/modokDB/master/LICENSE)
+[![License](https://img.shields.io/github/license/KaiWedekind/modokDB.svg)](https://raw.githubusercontent.com/KaiWedekind/modokDB/master/LICENSE)
 [![Package](https://img.shields.io/badge/npm-5.0.3-blue.svg)](package)
 [![CodeOfConduct](https://img.shields.io/badge/code%20of-conduct-ff69b4.svg)]()
 
