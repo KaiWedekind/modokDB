@@ -60,7 +60,7 @@ function writeDatabaseFile(filePath, fileName, content) {
     } else {
       reject({ message: 'No file write' });
     }
-  }).then(null, (error) => {});
+  }).then(null, () => {});
 }
 
 function readDatabaseStats(filePath, fileName) {
