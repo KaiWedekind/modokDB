@@ -1,6 +1,6 @@
 {
   "name": "modokdb",
-  "version": "0.1.0-6",
+  "version": "0.1.0-7",
   "description": "In-memory Database",
   "main": "dist/index.js",
   "scripts": {
