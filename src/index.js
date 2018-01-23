@@ -405,6 +405,7 @@ Brain.prototype.findOne = function findOne(object) {
         found.push(value);
       }
     }, this.store);
+
     return (found && found.length > 0) ? found[0] : {};
   } else if (object === undefined) {
     return Array.from(this.store.values())[0] || null;
@@ -416,11 +417,7 @@ Brain.prototype.findOne = function findOne(object) {
 // Asynchronous
 Brain.prototype.$findOne = function $findOne(object) {
   return new Promise((resolve) => {
-    const result = this.findOne(object);
-    if (isArray(result) && result.length > 0) {
-      return resolve(result[0]);
-    }
-    return resolve(result);
+    resolve(this.findOne(object));
   });
 };
 

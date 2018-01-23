@@ -185,6 +185,18 @@ db.$update({ first_name: 'Jane' }, { age: 45, last_name: 'Mayer' }, { upsert: tr
 });
 ```
 
+#### db.updateOne - Synchronous (_returns database entry / null)
+```javascript
+const updatedUser = db.updateOne({ first_name: 'Jane' }, { age: 45, last_name: 'Mayer' });
+console.log('updatedUser', updatedUser)
+```
+
+#### db.$updateOne - Asynchronous (_returns database entry / null)
+```javascript
+db.$updateOne({ first_name: 'Jane' }, { age: 45, last_name: 'Mayer' }).then((user) => {
+    console.log('user', user);
+});
+
 #### db.updateMany - Synchronous (_returns database entry / null)
 ```javascript
 const updatedUsers = db.updateMany({ first_name: 'Jane' }, { age: 45, last_name: 'Mayer' });

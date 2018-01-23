@@ -31,6 +31,10 @@ describe('modokDB', () => {
       it('should store the collection name', () => {
         expect(db.name).to.equal('users');
       });
+
+      it('should thow an error if no collection name', () => {
+        expect(() => new Modok()).to.throw('Name is required');
+      });
     });
 
     describe('has / $has', () => {
@@ -223,6 +227,15 @@ describe('modokDB', () => {
           expect(db.$findOne(undefined)).to.eventually.have.property('age');
           expect(db.$findOne(undefined)).to.eventually.have.property('created_at');
         });
+
+        it('should return first document with db.findOne() if more documents found', () => {
+          expect(db.findOne({ last_name: 'Doe' })).to.be.an('object');
+          expect(db.findOne({ last_name: 'Doe' }).first_name).to.be.equal('John');
+        });
+
+        it('should return first document with db.$findOne() if more documents found', () => {
+          expect(db.$findOne({ last_name: 'Doe' })).to.eventually.be.an('object');
+        });
       });
 
       it('should return null with parameter of string for db.findOne()', () => {
@@ -262,8 +275,25 @@ describe('modokDB', () => {
         expect(db.findOne({ first_name: 'Jane' }).last_name).to.be.equal('Mayer');
       });
 
+      it('should update and return the object found for db.update()', () => {
+        db.update({ _id: 0 }, { age: 60, first_name: 'Jon', last_name: 'Smith' });
+        expect(db.findOne({ _id: 0 }).last_name).to.be.equal('Smith');
+        expect(db.findOne({ _id: 0 }).first_name).to.be.equal('Jon');
+      });
+
+      it('should update and return the object found for db.$update()', async () => {
+        await db.$update({ _id: 0 }, { age: 60, first_name: 'Jon', last_name: 'Smith' });
+        expect(db.findOne({ _id: 0 }).last_name).to.be.equal('Smith');
+        expect(db.findOne({ _id: 0 }).first_name).to.be.equal('Jon');
+      });
+
+      it('should return null for db.update()', () => {
+        db.update({ _id: 2580 }, { age: 60, first_name: 'Jon', last_name: 'Smith' }, { upsert: false });
+        expect(db.findOne({ _id: 2580 })).to.be.equal(null);
+      });
+
       it('should insert a new entry for db.update() with upsert: true', async () => {
-        await db.update({ _id: 2569 }, { age: 60, first_name: 'Jon', last_name: 'Smith' }, { upsert: true });
+        db.update({ _id: 2569 }, { age: 60, first_name: 'Jon', last_name: 'Smith' }, { upsert: true });
         expect(db.findOne({ _id: 2569 }).last_name).to.be.equal('Smith');
         expect(db.findOne({ _id: 2569 }).first_name).to.be.equal('Jon');
       });
@@ -272,6 +302,57 @@ describe('modokDB', () => {
         await db.$update({ _id: 2569 }, { age: 60, first_name: 'Jon', last_name: 'Smith' }, { upsert: true });
         expect(db.findOne({ _id: 2569 }).last_name).to.be.equal('Smith');
         expect(db.findOne({ _id: 2569 }).first_name).to.be.equal('Jon');
+      });
+    });
+
+    describe('updateOne / $updateOne', () => {
+      beforeEach(() => {
+        db.insertMany([{ _id: 0, first_name: 'John', last_name: 'Doe', age: 29 },
+          { _id: 1, first_name: 'Jane', last_name: 'Doe', age: 27 }]);
+      });
+
+      it('should update the last_name with db.updateOne()', () => {
+        db.updateOne({ last_name: 'Doe' }, { last_name: 'Mayer' });
+        expect(db.findOne({ _id: 0 }).last_name).to.be.equal('Mayer');
+      });
+
+      it('should update the last_name with db.$updateOne()', async () => {
+        await db.$updateOne({ last_name: 'Doe' }, { last_name: 'Mayer' });
+        expect(db.findOne({ _id: 0 }).last_name).to.be.equal('Mayer');
+      });
+
+      it('should insert a new entry for db.updateOne() with upsert: true', () => {
+        db.updateOne({ _id: 2570 }, { age: 60, first_name: 'Jon', last_name: 'Smith' }, { upsert: true });
+        expect(db.findOne({ _id: 2570 }).last_name).to.be.equal('Smith');
+        expect(db.findOne({ _id: 2570 }).first_name).to.be.equal('Jon');
+      });
+
+      it('should insert a new entry for db.$updateOne() with upsert: true', async () => {
+        await db.$updateOne({ _id: 2570 }, { age: 60, first_name: 'Jon', last_name: 'Smith' }, { upsert: true });
+        expect(db.findOne({ _id: 2570 }).last_name).to.be.equal('Smith');
+        expect(db.findOne({ _id: 2570 }).first_name).to.be.equal('Jon');
+      });
+
+      it('should return null for db.updateOne() if not upsert: true', () => {
+        db.updateOne({ _id: 2580 }, { age: 60, first_name: 'Jon', last_name: 'Smith' }, { upsert: false });
+        expect(db.findOne({ _id: 2580 })).to.be.equal(null);
+      });
+
+      it('should return null for db.$updateOne() if not upsert: true', async () => {
+        await db.$updateOne({ _id: 2580 }, { age: 60, first_name: 'Jon', last_name: 'Smith' }, { upsert: false });
+        expect(db.findOne({ _id: 2580 })).to.be.equal(null);
+      });
+
+      it('should update and return the first object found for db.updateOne()', () => {
+        db.updateOne({ _id: 0 }, { age: 60, first_name: 'Jon', last_name: 'Smith' });
+        expect(db.findOne({ _id: 0 }).last_name).to.be.equal('Smith');
+        expect(db.findOne({ _id: 0 }).first_name).to.be.equal('Jon');
+      });
+
+      it('should update and return the first object found for db.$updateOne()', async () => {
+        await db.$updateOne({ _id: 0 }, { age: 60, first_name: 'Jon', last_name: 'Smith' });
+        expect(db.findOne({ _id: 0 }).last_name).to.be.equal('Smith');
+        expect(db.findOne({ _id: 0 }).first_name).to.be.equal('Jon');
       });
     });
 
@@ -335,6 +416,24 @@ describe('modokDB', () => {
 
       it('should return an object with property size for db.$stats() with no file storage', () => {
         expect(db.$stats()).to.eventually.have.property('size');
+      });
+    });
+
+    describe('Collection Reference', () => {
+      it('should return collection reference', () => {
+        expect(Modok('users')).to.be.an('object');
+      });
+
+      it('should have the property name', () => {
+        expect(Modok('users')).to.have.property('name');
+      });
+
+      it('should store the collection name', () => {
+        expect(Modok('users').name).to.equal('users');
+      });
+
+      it('should thow an error if collection unknown', () => {
+        expect(() => Modok('posts')).to.throw('No database with name posts found');
       });
     });
   });
