@@ -164,6 +164,7 @@ const Brain = function Brain(name, config) {
   if (!name) {
     throw Error('Name is required');
   }
+
   if (!this) {
     if (!Brainstack[name]) {
       throw Error(`No database with name ${name} found`);

@@ -41,10 +41,9 @@ yarn add modokdb
 A UMD build is also available on <a href="https://unpkg.com/#/">unpkg</a> for testing and quick prototyping:
 
 ```html
-<script src="https://unpkg.com/modokdb/modokdb.min.js"></script>
 <script src="https://unpkg.com/modokdb/dist/modokdb.min.js"></script>
 <script>
-  var db = modokdb()
+  var db = new modokdb('users')
 </script>
 ```
 
