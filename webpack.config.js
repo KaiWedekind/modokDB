@@ -8,7 +8,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     libraryTarget: 'umd',
-    library: 'opensource',
+    library: 'modokdb',
     filename: 'index.js',
   },
   node: {
