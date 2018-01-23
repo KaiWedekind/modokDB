@@ -245,5 +245,97 @@ describe('modokDB', () => {
         expect(db.$findOne(null)).to.eventually.be.equal(null);
       });
     });
+
+    describe('update / $update', () => {
+      beforeEach(() => {
+        db.insertMany([{ _id: 0, first_name: 'John', last_name: 'Doe', age: 29 },
+          { _id: 1, first_name: 'Jane', last_name: 'Doe', age: 27 }]);
+      });
+
+      it('should update the last_name with db.update()', () => {
+        db.update({ first_name: 'Jane' }, { last_name: 'Mayer' });
+        expect(db.findOne({ first_name: 'Jane' }).last_name).to.be.equal('Mayer');
+      });
+
+      it('should update the last_name with db.$update()', async () => {
+        await db.$update({ first_name: 'Jane' }, { last_name: 'Mayer' });
+        expect(db.findOne({ first_name: 'Jane' }).last_name).to.be.equal('Mayer');
+      });
+
+      it('should insert a new entry for db.update() with upsert: true', async () => {
+        await db.update({ _id: 2569 }, { age: 60, first_name: 'Jon', last_name: 'Smith' }, { upsert: true });
+        expect(db.findOne({ _id: 2569 }).last_name).to.be.equal('Smith');
+        expect(db.findOne({ _id: 2569 }).first_name).to.be.equal('Jon');
+      });
+
+      it('should insert a new entry for db.$update() with upsert: true', async () => {
+        await db.$update({ _id: 2569 }, { age: 60, first_name: 'Jon', last_name: 'Smith' }, { upsert: true });
+        expect(db.findOne({ _id: 2569 }).last_name).to.be.equal('Smith');
+        expect(db.findOne({ _id: 2569 }).first_name).to.be.equal('Jon');
+      });
+    });
+
+    describe('updateMany / $updateMany', () => {
+      beforeEach(() => {
+        db.insertMany([{ _id: 0, first_name: 'John', last_name: 'Doe', age: 29 },
+          { _id: 1, first_name: 'Jane', last_name: 'Doe', age: 27 }]);
+      });
+
+      it('should update all last_name\'s with db.updateMany()', () => {
+        db.updateMany({ last_name: 'Doe' }, { last_name: 'Smith' });
+        expect(db.findOne({ _id: 0 }).last_name).to.be.equal('Smith');
+        expect(db.findOne({ _id: 1 }).last_name).to.be.equal('Smith');
+      });
+
+      it('should update all last_name\'s with db.$updateMany()', async () => {
+        await db.$updateMany({ last_name: 'Doe' }, { last_name: 'Smith' });
+        expect(db.findOne({ _id: 0 }).last_name).to.be.equal('Smith');
+        expect(db.findOne({ _id: 1 }).last_name).to.be.equal('Smith');
+      });
+    });
+
+    describe('count / $count', () => {
+      beforeEach(() => {
+        db.insertMany([
+          { _id: 0, first_name: 'John' },
+          { _id: 1, first_name: 'Jane' },
+          { _id: 2, first_name: 'Joe' },
+        ]);
+      });
+
+      it('should return 3 with db.count()', () => {
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return 3 with db.$count()', () => {
+        expect(db.$count()).to.eventually.be.equal(3);
+      });
+    });
+
+    describe('stats / $stats', () => {
+      beforeEach(() => {
+        db.insertMany([
+          { _id: 0, first_name: 'John' },
+          { _id: 1, first_name: 'Jane' },
+          { _id: 2, first_name: 'Joe' },
+        ]);
+      });
+
+      it('should return an object for db.stats() with no file storage', () => {
+        expect(db.stats()).to.be.an('object');
+      });
+
+      it('should return an object with property size for db.stats() with no file storage', () => {
+        expect(db.stats()).to.have.property('size');
+      });
+
+      it('should return an object for db.$stats() with no file storage', () => {
+        expect(db.$stats()).to.eventually.be.an('object');
+      });
+
+      it('should return an object with property size for db.$stats() with no file storage', () => {
+        expect(db.$stats()).to.eventually.have.property('size');
+      });
+    });
   });
 });

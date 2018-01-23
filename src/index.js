@@ -9,8 +9,22 @@ const ModokEmitter = new EventEmitter();
 
 /* HELPER */
 
+String.prototype.lengthInUtf8 = function lengthInUtf8() {
+  const asciiLength = this.match(/[\u0000-\u007f]/g) ? this.match(/[\u0000-\u007f]/g).length : 0;
+  const multiByteLength = encodeURI(this.replace(/[\u0000-\u007f]/g)).match(/%/g) ? encodeURI(this.replace(/[\u0000-\u007f]/g, '')).match(/%/g).length : 0;
+  return asciiLength + multiByteLength;
+};
+
 function uuid() {
   return Math.random().toString(26).slice(2);
+}
+
+function getMemoryStats(store) {
+  const values = Array.from(store.values());
+  const valuesString = JSON.stringify(values);
+  return {
+    size: valuesString.lengthInUtf8(),
+  };
 }
 
 function newDatabaseFile(filePath, fileName) {
@@ -63,7 +77,7 @@ function writeDatabaseFile(filePath, fileName, content) {
   }).then(null, () => {});
 }
 
-function readDatabaseStats(filePath, fileName) {
+function readDatabaseStats(store, filePath, fileName) {
   return new Promise((resolve, reject) => {
     if (filePath && fileName) {
       fs.open(`${filePath}/${fileName}.json`, 'r', (err, fd) => {
@@ -83,13 +97,13 @@ function readDatabaseStats(filePath, fileName) {
       });
     }
 
-    return resolve('No file stats given');
+    return resolve(getMemoryStats(store));
   });
 }
 
-function readDatabaseStatsSync(filePath, fileName) {
+function readDatabaseStatsSync(store, filePath, fileName) {
   if (!filePath || !fileName) {
-    return 'No file stats given';
+    return getMemoryStats(store);
   }
 
   const fd = fs.openSync(`${filePath}/${fileName}.json`, 'r');
@@ -107,7 +121,6 @@ function resolveData(object) {
   this.store.set(id, data);
 
   writeDatabaseFile(this.filePath, this.fileName, Array.from(this.store.values()));
-
   return this.store.get(id);
 }
 
@@ -295,17 +308,19 @@ Brain.prototype.find = function find(object) {
     let foundById = null;
     let countById = 0;
 
-    if (object._id !== undefined) {
+    if (object && object._id !== undefined) {
       const document = this.store.get(object._id);
 
-      for (let i = 0; i < keys.length; i += 1) {
-        if (document[keys[i]] === values[i]) {
-          countById += 1;
+      if (document) {
+        for (let i = 0; i < keys.length; i += 1) {
+          if (document[keys[i]] === values[i]) {
+            countById += 1;
+          }
         }
-      }
 
-      if (countById === keys.length) {
-        foundById = document;
+        if (countById === keys.length) {
+          foundById = document;
+        }
       }
 
       return foundById;
@@ -360,14 +375,16 @@ Brain.prototype.findOne = function findOne(object) {
     if (object._id) {
       const document = this.store.get(object._id);
 
-      for (let i = 0; i < keys.length; i += 1) {
-        if (document[keys[i]] === values[i]) {
-          countById += 1;
+      if (document) {
+        for (let i = 0; i < keys.length; i += 1) {
+          if (document[keys[i]] === values[i]) {
+            countById += 1;
+          }
         }
-      }
 
-      if (countById === keys.length) {
-        foundById = document;
+        if (countById === keys.length) {
+          foundById = document;
+        }
       }
 
       return foundById;
@@ -387,7 +404,7 @@ Brain.prototype.findOne = function findOne(object) {
         found.push(value);
       }
     }, this.store);
-    return (found && found.length > 0) ? found : {};
+    return (found && found.length > 0) ? found[0] : {};
   } else if (object === undefined) {
     return Array.from(this.store.values())[0] || null;
   }
@@ -425,7 +442,7 @@ Brain.prototype.update = function update(_query, _update, _config) {
   } else if (documents && isObject(documents)) {
     return this.insert(Object.assign(documents, _update));
   } else if (_config && isObject(_config) && _config.upsert === true) {
-    return this.insert(_update);
+    return this.insert(Object.assign(_query, _update));
   }
   return null;
 };
@@ -443,7 +460,7 @@ Brain.prototype.$update = function $update(_query, _update, _config) {
       } else if (documents && isObject(documents)) {
         resolve(this.$insert(Object.assign(documents, _update)));
       } else if (_config && isObject(_config) && _config.upsert === true) {
-        resolve(this.$insert(_update));
+        resolve(this.$insert(Object.assign(_query, _update)));
       }
     });
   });
@@ -464,7 +481,7 @@ Brain.prototype.updateOne = function updateOne(_query, _update, _config) {
   } else if (documents && isObject(documents)) {
     return this.insert(Object.assign(documents, _update));
   } else if (_config && isObject(_config) && _config.upsert === true) {
-    return this.insert(_update);
+    return this.insert(Object.assign(_query, _update));
   }
   return null;
 };
@@ -478,7 +495,7 @@ Brain.prototype.$updateOne = function $updateOne(_query, _update, _config) {
       } else if (documents && isObject(documents)) {
         return resolve(this.$insert(Object.assign(documents, _update)));
       } else if (_config && isObject(_config) && _config.upsert === true) {
-        return resolve(this.$insert(_update));
+        return resolve(this.$insert(Object.assign(_query, _update)));
       }
       return resolve(null);
     });
@@ -512,13 +529,15 @@ Brain.prototype.$count = function $count() {
 
 // Synchronous
 Brain.prototype.stats = function stats() {
-  return readDatabaseStatsSync(this.filePath, this.fileName);
+  const store = this.store;
+  return readDatabaseStatsSync(store, this.filePath, this.fileName);
 };
 
 // Asynchronous
 Brain.prototype.$stats = function $stats() {
+  const store = this.store;
   return new Promise((resolve) => {
-    resolve(readDatabaseStats(this.filePath, this.fileName));
+    resolve(readDatabaseStats(store, this.filePath, this.fileName));
   });
 };
 

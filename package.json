@@ -14,7 +14,7 @@
     "build:umd": "webpack --output-filename index.umd.js",
     "build:umd.min": "webpack --output-filename index.umd.min.js -p",
     "lint": "eslint src",
-    "test": "cross-env NODE_ENV=test nyc mocha",
+    "test": "cross-env NODE_ENV=test nyc mocha --require babel-polyfill",
     "watch:test": "mocha --watch",
     "report-coverage": "cat ./coverage/lcov.info | codecov",
     "validate": "npm-run-all --parallel lint test build",
@@ -56,10 +56,10 @@
   },
   "nyc": {
     "check-coverage": false,
-    "branches": 20,
-    "functions": 45,
-    "lines": 35,
-    "statements": 35,
+    "branches": 50,
+    "functions": 72,
+    "lines": 69,
+    "statements": 69,
     "reporter": [
       "text",
       "lcov",
