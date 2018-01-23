@@ -1,5 +1,7 @@
 /* eslint-env mocha */
 const chai = require('chai');
+const sinon = require('sinon');
+const EventEmitter = require('events').EventEmitter;
 const chaiAsPromised = require('chai-as-promised');
 
 chai.use(chaiAsPromised);
@@ -8,6 +10,23 @@ const expect = chai.expect;
 const Modok = require('./index');
 
 let db = null;
+
+const fs = require('fs');
+const path = require('path');
+
+function rimraf(dirPath) {
+  if (fs.existsSync(dirPath)) {
+    fs.readdirSync(dirPath).forEach((entry) => {
+      const entryPath = path.join(dirPath, entry);
+      if (fs.lstatSync(entryPath).isDirectory()) {
+        rimraf(entryPath);
+      } else {
+        fs.unlinkSync(entryPath);
+      }
+    });
+    fs.rmdirSync(dirPath);
+  }
+}
 
 describe('modokDB', () => {
   describe('Create instance without file storage', () => {
@@ -34,6 +53,16 @@ describe('modokDB', () => {
 
       it('should thow an error if no collection name', () => {
         expect(() => new Modok()).to.throw('Name is required');
+      });
+    });
+
+    describe('Check ready event', () => {
+      it('should emit the ready event', () => {
+        const spy = sinon.spy();
+        const emitter = new EventEmitter();
+        emitter.on('ready', spy);
+        emitter.emit('ready');
+        sinon.assert.calledOnce(spy);
       });
     });
 
@@ -434,6 +463,35 @@ describe('modokDB', () => {
 
       it('should thow an error if collection unknown', () => {
         expect(() => Modok('posts')).to.throw('No database with name posts found');
+      });
+    });
+  });
+
+  describe('Create instance with file storage', () => {
+    beforeEach(() => {
+      db = new Modok('users', { filepath: './data/users', filename: 'database' });
+    });
+
+    afterEach(() => {
+      db = null;
+      rimraf('./data');
+    });
+
+    describe('Check db instance', () => {
+      it('should have a constructor to be a object', () => {
+        expect(db).to.be.an('object');
+      });
+
+      it('should have the property name', () => {
+        expect(db).to.have.property('name');
+      });
+
+      it('should store the collection name', () => {
+        expect(db.name).to.equal('users');
+      });
+
+      it('should thow an error if no collection name', () => {
+        expect(() => new Modok()).to.throw('Name is required');
       });
     });
   });
