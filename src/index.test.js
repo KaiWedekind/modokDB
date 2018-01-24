@@ -1,4 +1,7 @@
 /* eslint-env mocha */
+/* eslint no-unused-vars: 0 */
+
+const fs = require('fs');
 const chai = require('chai');
 const sinon = require('sinon');
 const EventEmitter = require('events').EventEmitter;
@@ -9,24 +12,21 @@ const expect = chai.expect;
 
 const Modok = require('./index');
 
+/* Helper */
+
+const {
+  uuid,
+  newDatabaseFile,
+  readDatabaseFile,
+  readDatabaseStats,
+  readDatabaseStatsSync,
+  resolveData,
+  isObject,
+  isArray,
+  rimraf,
+} = require('./helper');
+
 let db = null;
-
-const fs = require('fs');
-const path = require('path');
-
-function rimraf(dirPath) {
-  if (fs.existsSync(dirPath)) {
-    fs.readdirSync(dirPath).forEach((entry) => {
-      const entryPath = path.join(dirPath, entry);
-      if (fs.lstatSync(entryPath).isDirectory()) {
-        rimraf(entryPath);
-      } else {
-        fs.unlinkSync(entryPath);
-      }
-    });
-    fs.rmdirSync(dirPath);
-  }
-}
 
 describe('modokDB', () => {
   describe('Create instance without file storage', () => {
@@ -496,3 +496,106 @@ describe('modokDB', () => {
     });
   });
 });
+
+describe('Helper', () => {
+  beforeEach(() => {
+    db = new Modok('users');
+  });
+
+  afterEach(() => {
+    db = null;
+  });
+
+  describe('Check newDatabaseFile', () => {
+
+  });
+
+  describe('Check readDatabaseFile', () => {
+
+  });
+
+  describe('Check readDatabaseStats', () => {
+
+  });
+
+  describe('Check readDatabaseStatsSync', () => {
+    it('should call fs.openSync', () => {
+      const openSync = sinon.stub(fs, 'openSync').returns(0);
+      const filePath = './data';
+      const fileName = 'users';
+      readDatabaseStatsSync(db, filePath, fileName);
+      openSync.restore();
+      sinon.assert.called(openSync);
+    });
+
+    it('should call fs.openSync with args', () => {
+      const openSync = sinon.stub(fs, 'openSync').returns(0);
+      const filePath = './data';
+      const fileName = 'users';
+      readDatabaseStatsSync(db, filePath, fileName);
+      openSync.restore();
+      sinon.assert.calledWith(openSync, `${filePath}/${fileName}.json`, 'r');
+    });
+  });
+
+  describe('Check rimraf', () => {
+    it('should call fs.existsSync', () => {
+      const existsSync = sinon.stub(fs, 'existsSync');
+      const dirPath = './data';
+      rimraf(dirPath);
+      existsSync.restore();
+      sinon.assert.called(existsSync);
+    });
+
+    it('should call fs.existsSync with dir path', () => {
+      const existsSync = sinon.stub(fs, 'existsSync');
+      const dirPath = './data';
+      rimraf(dirPath);
+      existsSync.restore();
+      sinon.assert.calledWith(existsSync, dirPath);
+    });
+  });
+
+  describe('Check uuid', () => {
+
+  });
+
+  describe('Check resolveData', () => {
+
+  });
+
+  describe('Check isObject', () => {
+    it('should return true', () => {
+      expect(isObject({})).to.be.an('boolean');
+      expect(isObject({})).to.be.equal(true);
+      expect(isObject({ first_name: 'John' })).to.be.equal(true);
+      expect(isObject({ first_name: 'John', last_name: 'Doe' })).to.be.equal(true);
+    });
+
+    it('should return false', () => {
+      expect(isObject([])).to.be.an('boolean');
+      expect(isObject([])).to.be.equal(false);
+      expect(isObject(null)).to.be.equal(false);
+      expect(isObject('String')).to.be.equal(false);
+      expect(isObject(123)).to.be.equal(false);
+    });
+  });
+
+  describe('Check isArray', () => {
+    it('should return true', () => {
+      expect(isArray([])).to.be.an('boolean');
+      expect(isArray([])).to.be.equal(true);
+      expect(isArray([{}])).to.be.equal(true);
+      expect(isArray([{}, {}])).to.be.equal(true);
+    });
+
+    it('should return false', () => {
+      expect(isArray({})).to.be.an('boolean');
+      expect(isArray({})).to.be.equal(false);
+      expect(isArray(null)).to.be.equal(false);
+      expect(isArray('String')).to.be.equal(false);
+      expect(isArray(123)).to.be.equal(false);
+    });
+  });
+});
+

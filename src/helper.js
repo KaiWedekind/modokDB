@@ -2,12 +2,27 @@
 /* eslint no-unneeded-ternary: 0 */
 
 const fs = require('fs');
+const path = require('path');
 
 String.prototype.lengthInUtf8 = function lengthInUtf8() {
   const asciiLength = this.match(/[\u0000-\u007f]/g) ? this.match(/[\u0000-\u007f]/g).length : 0;
   const multiByteLength = encodeURI(this.replace(/[\u0000-\u007f]/g)).match(/%/g) ? encodeURI(this.replace(/[\u0000-\u007f]/g, '')).match(/%/g).length : 0;
   return asciiLength + multiByteLength;
 };
+
+function rimraf(dirPath) {
+  if (fs.existsSync(dirPath)) {
+    fs.readdirSync(dirPath).forEach((entry) => {
+      const entryPath = path.join(dirPath, entry);
+      if (fs.lstatSync(entryPath).isDirectory()) {
+        rimraf(entryPath);
+      } else {
+        fs.unlinkSync(entryPath);
+      }
+    });
+    fs.rmdirSync(dirPath);
+  }
+}
 
 function uuid() {
   return Math.random().toString(26).slice(2);
@@ -64,7 +79,6 @@ function writeDatabaseFile(filePath, fileName, content) {
         }
         return resolve(JSON.stringify(content));
       });
-      resolve('test');
     } else {
       reject({ message: 'No file write' });
     }
@@ -104,11 +118,11 @@ function readDatabaseStatsSync(store, filePath, fileName) {
 }
 
 function resolveData(object) {
-  let id = object._id;
+  let id = (object) ? object._id : null;
   if (id === undefined || id === null) {
     id = uuid();
   }
-  const data = object;
+  const data = (object) ? object : {};
   data._id = id;
   data.created_at = new Date();
   this.store.set(id, data);
@@ -126,6 +140,7 @@ function isArray(item) {
 }
 
 module.exports = {
+  rimraf,
   uuid,
   getMemoryStats,
   newDatabaseFile,
