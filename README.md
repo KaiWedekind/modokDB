@@ -196,6 +196,7 @@ console.log('updatedUser', updatedUser)
 db.$updateOne({ first_name: 'Jane' }, { age: 45, last_name: 'Mayer' }).then((user) => {
     console.log('user', user);
 });
+```
 
 #### db.updateMany - Synchronous (_returns database entry / null)
 ```javascript
