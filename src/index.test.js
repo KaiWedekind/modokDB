@@ -448,6 +448,284 @@ describe('modokDB', () => {
       });
     });
 
+    describe('drop / $drop', () => {
+      beforeEach(() => {
+        db.insertMany([
+          { _id: 0, first_name: 'John' },
+          { _id: 1, first_name: 'Jane' },
+          { _id: 2, first_name: 'Joe' },
+        ]);
+      });
+
+      it('should remove the collection with db.drop()', () => {
+        expect(db.count()).to.be.equal(3);
+        db.drop();
+        expect(db.count()).to.be.equal(0);
+      });
+
+      it('should remove the collection with db.$drop()', async () => {
+        expect(db.$count()).to.eventually.be.equal(3);
+        await db.$drop();
+        expect(db.$count()).to.eventually.be.equal(0);
+      });
+    });
+
+    describe('Check deleteOne / $deleteOne', () => {
+      beforeEach(() => {
+        db.insertMany([
+          { _id: 0, first_name: 'John' },
+          { _id: 1, first_name: 'Jane' },
+          { _id: 2, first_name: 'Joe' },
+        ]);
+      });
+
+      it('should delete an object with db.deleteOne(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.deleteOne({ _id: 1 })).to.be.equal(true);
+        expect(db.count()).to.be.equal(2);
+      });
+
+      it('should delete an object with db.$deleteOne(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$deleteOne({ _id: 1 })).to.eventually.be.equal(true);
+        expect(db.count()).to.be.equal(2);
+      });
+
+      it('should delete an object with db.deleteOne(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.deleteOne({ first_name: 'Jane' })).to.be.equal(true);
+        expect(db.count()).to.be.equal(2);
+      });
+
+      it('should delete an object with db.$deleteOne(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$deleteOne({ first_name: 'Jane' })).to.eventually.be.equal(true);
+        expect(db.count()).to.be.equal(2);
+      });
+
+      it('should return false when no document found for db.deleteOne(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.deleteOne({ _id: 4 })).to.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no document found for db.$deleteOne(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$deleteOne({ _id: 4 })).to.eventually.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return null when no valid query for db.deleteOne(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.deleteOne('<query>')).to.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return null when no valid query for db.$deleteOne(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$deleteOne('<query>')).to.eventually.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return null when no document found for db.deleteOne(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.deleteOne({ first_name: 'Jason' })).to.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return null when no document found for db.$deleteOne(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$deleteOne({ first_name: 'Jason' })).to.eventually.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+    });
+
+    describe('Check delete / $delete', () => {
+      beforeEach(() => {
+        db.insertMany([
+          { _id: 0, first_name: 'John', last_name: 'Smith' },
+          { _id: 1, first_name: 'Jane', last_name: 'Doe' },
+          { _id: 2, first_name: 'Joe', last_name: 'Doe' },
+        ]);
+      });
+
+      it('should delete an object with db.delete(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.delete({ last_name: 'Doe' })).to.be.equal(true);
+        expect(db.count()).to.be.equal(1);
+      });
+
+      it('should delete an object with db.$delete(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$delete({ last_name: 'Doe' })).to.eventually.be.equal(true);
+        expect(db.count()).to.be.equal(1);
+      });
+
+      it('should delete an object with db.delete(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.delete({ _id: 1 })).to.be.equal(true);
+        expect(db.count()).to.be.equal(2);
+      });
+
+      it('should delete an object with db.$delete(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$delete({ _id: 1 })).to.eventually.be.equal(true);
+        expect(db.count()).to.be.equal(2);
+      });
+
+      it('should return false with db.delete(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.delete({ _id: 4 })).to.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false with db.$delete(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$delete({ _id: 4 })).to.eventually.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no document found for db.delete(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.delete({ first_name: 'Jason' })).to.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no document found for db.$delete(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$delete({ first_name: 'Jason' })).to.eventually.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no document found for db.delete(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.delete({ last_name: 'Taylor' })).to.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no document found for db.$delete(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$delete({ last_name: 'Taylor' })).to.eventually.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no valid query for db.delete(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.delete('<query>')).to.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no valid query for db.$delete(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$delete('<query>')).to.eventually.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+    });
+
+    describe('Check deleteMany / $deleteMany', () => {
+      beforeEach(() => {
+        db.insertMany([
+          { _id: 0, first_name: 'John', last_name: 'Smith' },
+          { _id: 1, first_name: 'Jane', last_name: 'Doe' },
+          { _id: 2, first_name: 'Joe', last_name: 'Doe' },
+        ]);
+      });
+
+      it('should delete an object with db.deleteMany(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.deleteMany({ last_name: 'Doe' })).to.be.equal(true);
+        expect(db.count()).to.be.equal(1);
+      });
+
+      it('should delete an object with db.$deleteMany(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$deleteMany({ last_name: 'Doe' })).to.eventually.be.equal(true);
+        expect(db.count()).to.be.equal(1);
+      });
+
+      it('should delete an object with db.deleteMany(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.deleteMany({ _id: 1 })).to.be.equal(true);
+        expect(db.count()).to.be.equal(2);
+      });
+
+      it('should delete an object with db.$deleteMany(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$deleteMany({ _id: 1 })).to.eventually.be.equal(true);
+        expect(db.count()).to.be.equal(2);
+      });
+
+      it('should return false with db.deleteMany(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.deleteMany({ _id: 4 })).to.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false with db.$deleteMany(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$deleteMany({ _id: 4 })).to.eventually.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no document found for db.deleteMany(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.deleteMany({ first_name: 'Jason' })).to.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no document found for db.$deleteMany(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$deleteMany({ first_name: 'Jason' })).to.eventually.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no document found for db.deleteMany(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.deleteMany({ last_name: 'Taylor' })).to.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no document found for db.$deleteMany(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$deleteMany({ last_name: 'Taylor' })).to.eventually.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no valid query for db.deleteMany(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.deleteMany('<query>')).to.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+
+      it('should return false when no valid query for db.$deleteMany(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$deleteMany('<query>')).to.eventually.be.equal(false);
+        expect(db.count()).to.be.equal(3);
+      });
+    });
+
+    describe('Check deleteOneById / $deleteOneById', () => {
+      beforeEach(() => {
+        db.insertMany([
+          { _id: 0, first_name: 'John' },
+          { _id: 1, first_name: 'Jane' },
+          { _id: 2, first_name: 'Joe' },
+        ]);
+      });
+
+      it('should delete an object with db.deleteOneById(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        expect(db.deleteOneById(1)).to.be.equal(true);
+        expect(db.count()).to.be.equal(2);
+      });
+
+      it('should delete an object with db.$deleteOneById(<query>)', async () => {
+        expect(db.count()).to.be.equal(3);
+        await expect(db.$deleteOneById(2)).to.eventually.be.equal(true);
+        expect(db.count()).to.be.equal(2);
+      });
+    });
+
     describe('Collection Reference', () => {
       it('should return collection reference', () => {
         expect(Modok('users')).to.be.an('object');
@@ -463,6 +741,16 @@ describe('modokDB', () => {
 
       it('should thow an error if collection unknown', () => {
         expect(() => Modok('posts')).to.throw('No database with name posts found');
+      });
+    });
+
+    describe('Check renameCollection / $renameCollection', () => {
+      it('should change the collection name with db.renameCollection(<name>)', () => {
+        expect(Modok('users').renameCollection('accounts').name).to.equal('accounts');
+      });
+
+      it('should change the collection name with db.$renameCollection(<name>)', () => {
+        expect(Modok('users').$renameCollection('accounts')).to.eventually.to.have.property('name');
       });
     });
   });

@@ -22,7 +22,7 @@ modokDB is a small high performant in-memory database powered by JavaScript Maps
 You are looking for a database that is simple and without any dependencies to install.
 
 ## The Solution
-modokDB is a high performant and convenient method for storing data without setting up a database server. It is fast and excelent to be used as an embedded database.
+modokDB is a high performant and convenient method for storing data without setting up a database server. It is fast and excellent to be used as an embedded database.
 
 ## Installation
 
@@ -223,6 +223,66 @@ db.$count().then((value) => {
 });
 ```
 
+#### db.drop - Synchronous (_returns empty object_)
+```javascript
+db.drop();
+```
+
+#### db.$drop - Asynchronous (_returns empty object_)
+```javascript
+db.$drop().then(() => {
+  
+});
+```
+
+#### db.delete - Synchronous (_returns true / false_)
+```javascript
+db.delete({ last_name: 'Doe' });
+```
+
+#### db.$delete - Asynchronous (_returns true / false_)
+```javascript
+db.$delete({ last_name: 'Doe' }).then(() => {
+  
+});
+```
+
+#### db.deleteOne - Synchronous (_returns true / false_)
+```javascript
+db.deleteOne({ last_name: 'Doe' });
+```
+
+#### db.$deleteOne - Asynchronous (_returns true / false_)
+```javascript
+db.$deleteOne({ last_name: 'Doe' }).then(() => {
+  
+});
+```
+
+#### db.deleteOne - Synchronous (_returns true / false_)
+```javascript
+db.deleteMany({ last_name: 'Doe' });
+```
+
+#### db.$deleteOne - Asynchronous (_returns true / false_)
+```javascript
+db.$deleteMany({ last_name: 'Doe' }).then(() => {
+  
+});
+```
+
+#### db.deleteOneById - Synchronous (_returns true / false_)
+```javascript
+db.deleteOneById(2);
+```
+
+#### db.$deleteOne - Asynchronous (_returns true / false_)
+```javascript
+db.$deleteOneById(2).then(() => {
+  
+});
+```
+
 #### db.stats - Synchronous (_returns object_)
 ```javascript
 const db = new Modok('users', { filepath: './data/users', filename: 'database' });
@@ -249,6 +309,22 @@ const db = new Modok('users', { filepath: './data/users', filename: 'database' }
 const usersRef = Modok('users');
 const results = usersRef.find({ last_name: 'Doe' });
 console.log('results', results);
+```
+
+#### db.renameCollection - Synchronous (_returns collection reference_)
+```javascript
+const db = new Modok('users');
+const newDB = db.renameCollection('accounts');
+console.log('newDB', newDB);
+```
+
+#### db.$renameCollection - Asynchronous (_returns collection reference_)
+```javascript
+const db = new Modok('users');
+
+db.$renameCollection('accounts').then((newDB) => {
+  console.log('newDB', newDB);
+});
 ```
 
 ## Contributors

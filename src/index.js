@@ -412,6 +412,30 @@ Brain.prototype.$count = function $count() {
   });
 };
 
+/**
+ * drop / $drop
+ * Removes a collection from the database.
+ */
+
+// Synchronous
+Brain.prototype.drop = function drop() {
+  this.store.clear();
+  return this.store;
+};
+
+// Asynchronous
+Brain.prototype.$drop = function $drop() {
+  return new Promise((resolve) => {
+    this.store.clear();
+    resolve(this.store);
+  });
+};
+
+/**
+ * stats / $stats
+ * Returns statistics about the collection.
+ */
+
 // Synchronous
 Brain.prototype.stats = function stats() {
   const store = this.store;
@@ -426,34 +450,68 @@ Brain.prototype.$stats = function $stats() {
   });
 };
 
-/*
+/**
+ * renameCollection / $renameCollection
+ * Renames a collection.
+ */
 
-// TODO
-Brain.prototype.renameCollection = function renameCollection(index, value) {
-  return this.store.set(index, value);
+// Synchronous
+Brain.prototype.renameCollection = function renameCollection(name) {
+  delete Brainstack[this.name];
+  this.name = name;
+  Brainstack[name] = this;
+  return this;
 };
 
-Brain.prototype.drop = function drop() {
-  this.store.clear();
-  return this.store;
+// Asynchronous
+Brain.prototype.$renameCollection = function $renameCollection(name) {
+  const that = this;
+  return new Promise((resolve) => {
+    delete Brainstack[that.name];
+    that.name = name;
+    Brainstack[name] = that;
+    resolve(that);
+  });
 };
-
-*/
 
 /**
- * deleteOne deletes the first document that matches the filter.
+ * deleteOne / $deleteOne
+ * Deletes the first document that matches the query.
  * Use a field that is part of a unique index such as _id for precise deletions.
  */
 
-/*
+// Synchronous
 Brain.prototype.deleteOne = function deleteOne(object) {
-  if (object) {
+  if (isObject(object)) {
     const keys = Object.keys(object);
     const values = Object.values(object);
-    let found = 0;
-    let index = null;
+    let foundById = null;
+    let countById = 0;
 
-    this.store.forEach((value, key) => {
+    if (object._id) {
+      const document = this.store.get(object._id);
+
+      if (document) {
+        for (let i = 0; i < keys.length; i += 1) {
+          if (document[keys[i]] === values[i]) {
+            countById += 1;
+          }
+        }
+
+        if (countById === keys.length) {
+          foundById = document;
+        }
+      }
+
+      if (foundById && foundById._id) {
+        return this.store.delete(foundById._id);
+      }
+
+      return false;
+    }
+
+    const found = [];
+    this.store.forEach((value) => {
       let count = 0;
 
       for (let i = 0; i < keys.length; i += 1) {
@@ -462,73 +520,97 @@ Brain.prototype.deleteOne = function deleteOne(object) {
         }
       }
 
-      if (count === keys.length && found < 1) {
-        found += 1;
-        index = key;
+      if (count === keys.length && found.length < 1) {
+        found.push(value);
       }
     }, this.store);
 
-    if (index !== null) {
-      return this.store.delete(index);
+    if (found && found.length > 0) {
+      return this.store.delete(found[0]._id);
     }
+
     return false;
   }
+
   return false;
 };
-*/
+
+// Asynchronous
+Brain.prototype.$deleteOne = function $deleteOne(object) {
+  return new Promise((resolve) => {
+    const value = this.deleteOne(object);
+    resolve(value);
+  });
+};
 
 /**
  * Removes all documents that match the filter from a collection.
  */
-
-/*
 Brain.prototype.deleteMany = function deleteMany(object) {
-  if (object) {
+  if (isObject(object)) {
     const keys = Object.keys(object);
     const values = Object.values(object);
+    if (object._id) {
+      return this.deleteOne(object);
+    }
+
     const found = [];
-
-    this.store.forEach((value, key) => {
-      let count = 0;
-
+    this.store.forEach((value) => {
       for (let i = 0; i < keys.length; i += 1) {
         if (value[keys[i]] === values[i]) {
-          count += 1;
+          found.push(value);
         }
-      }
-
-      if (count === keys.length) {
-        found.push(key);
       }
     }, this.store);
 
-    if (found.length > 0) {
+    if (found && found.length > 0) {
       for (let i = 0; i < found.length; i += 1) {
-        this.store.delete(found[i]);
+        this.store.delete(found[i]._id);
       }
       return true;
     }
+
     return false;
   }
+
   return false;
 };
+
+Brain.prototype.$deleteMany = function $deleteMany(object) {
+  return new Promise((resolve) => {
+    resolve(this.deleteMany(object));
+  });
+};
+
+Brain.prototype.delete = Brain.prototype.deleteMany;
+Brain.prototype.$delete = Brain.prototype.$deleteMany;
 
 Brain.prototype.deleteOneById = function deleteOne(index) {
   return this.store.delete(index);
 };
-// TODO
+
+Brain.prototype.$deleteOneById = function $deleteOne(index) {
+  return new Promise((resolve) => {
+    resolve(this.deleteOneById(index));
+  });
+};
+
+// TODO //
+
+/*
+
 Brain.prototype.findAndModify = function findAndModify(object) {
   return object;
 };
-// TODO
+
 Brain.prototype.findOneAndDelete = function findOneAndDelete(object) {
   return object;
 };
-// TODO
+
 Brain.prototype.findOneAndReplace = function findOneAndReplace(object) {
   return object;
 };
-// TODO
+
 Brain.prototype.findOneAndUpdate = function findOneAndUpdate(object) {
   return object;
 };
