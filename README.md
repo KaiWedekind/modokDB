@@ -1,4 +1,4 @@
-![modokdb](https://vignette.wikia.nocookie.net/marveldatabase/images/5/57/D.E.A.D.P.O.O.L..jpeg/revision/latest?cb=20130911033409)
+![modokdb](https://user-images.githubusercontent.com/12070900/35472660-9595c054-0373-11e8-92c4-6452144b2ad7.png)
 
 # modokDB
 
