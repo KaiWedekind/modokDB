@@ -1,4 +1,4 @@
-![modokdb](https://user-images.githubusercontent.com/12070900/35472660-9595c054-0373-11e8-92c4-6452144b2ad7.png)
+<img width="150" alt="modokdb" src="https://user-images.githubusercontent.com/12070900/35472660-9595c054-0373-11e8-92c4-6452144b2ad7.png">
 
 # modokDB
 
