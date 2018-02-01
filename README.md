@@ -336,8 +336,14 @@ db.$renameCollection('accounts').then((newDB) => {
             <img src="https://avatars0.githubusercontent.com/u/12070900?v=4&s=460" width="100px;"/><br />
             <sub><a href="https://www.kaiwedekind.com/" target="_blank">Kai Wedekind</a></sub>
         </td>
+        <td align="center">
+            <img src="https://avatars0.githubusercontent.com/u/35994116?s=96&v=4" width="100px;"/><br />
+            <sub><a href="https://github.com/thomasreinecke" target="_blank">Thomas Reinecke</a></sub>
+        </td>      
     <tr>
 </table>
+
+
 
 ## LICENSE
 
