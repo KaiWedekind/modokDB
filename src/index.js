@@ -183,6 +183,7 @@ Brain.prototype.$insertMany = function $insertMany(object) {
   });
 };
 
+
 /**
  * find / $find
  * Selects documents in a collection or view and returns a cursor to the selected documents.
