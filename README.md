@@ -159,6 +159,19 @@ db.$findOne({ last_name: 'Doe' }).then((users) => {
 });
 ```
 
+#### db.findOneAndDelete - Synchronous (_returns database entry / null)
+```javascript
+const users = db.findOneAndDelete({ last_name: 'Doe' });
+console.log('User', users)
+```
+
+#### db.$findOneAndDelete - Asynchronous (_returns database entry / null)
+```javascript
+db.$findOneAndDelete({ last_name: 'Doe' }).then((users) => {
+    console.log('User', users);
+});
+```
+
 #### db.update - Synchronous (_returns database entry / null)
 ```javascript
 const updatedUsers = db.update({ first_name: 'Jane' }, { age: 45, last_name: 'Mayer' });
