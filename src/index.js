@@ -309,6 +309,33 @@ Brain.prototype.$findOne = function $findOne(object) {
   });
 };
 
+
+/**
+ * findOneAndDelete / $findOneAndDelete
+ * Returns one document that satisfies the specified query criteria on the collection or view.
+ * If multiple documents satisfy the query, this method returns the first document according to
+ * the natural order which reflects the order of documents on the disk. In capped collections,
+ * natural order is the same as insertion order. If no document satisfies the query,
+ * the method returns null.
+ * The Document that was found gets deleted out of the collection or view.
+ */
+
+// Synchronous
+Brain.prototype.findOneAndDelete = function findOneAndDelete(object) {
+  if (isObject(object)) {
+  var result = findOne(object);
+  if(result != null) deleteOneById(result._id);
+  return result;
+};
+
+// Asynchronous
+Brain.prototype.$findOneAndDelete = function $findOneAndDelete(object) {
+  return new Promise((resolve) => {
+    resolve(this.findOneAndDelete(object));
+  });
+};
+
+
 /**
  * update / $update
  * Modifies an existing document or documents in a collection.
