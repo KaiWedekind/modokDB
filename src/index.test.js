@@ -184,6 +184,7 @@ describe('modokDB', () => {
       });
     });
 
+
     describe('findOne / $findOne', () => {
       describe('no entries', () => {
         it('should return null with db.findOne() when there is no entry in the database', () => {
@@ -285,6 +286,33 @@ describe('modokDB', () => {
 
       it('should return null with parameter of null for db.$findOne()', () => {
         expect(db.$findOne(null)).to.eventually.be.equal(null);
+      });
+    });
+
+    describe('findOneAndDelete / $findOneAndDelete', () => {
+      beforeEach(() => {
+        db.insertMany([{ _id: 0, first_name: 'John', last_name: 'Doe', age: 29 },
+          { _id: 1, first_name: 'Jane', last_name: 'Doe', age: 27 }]);
+      });
+
+      it('should find and delete the object found by given first_name with db.findOneAndDelete()', () => {
+        db.findOneAndDelete({ first_name: 'John' });
+        expect(db.find({}).length).to.be.equal(1);
+      });
+
+      it('should find and delete the object found by given first_name with db.$findOneAndDelete()', async () => {
+        await db.$findOneAndDelete({ first_name: 'John' });
+        expect(db.find({}).length).to.be.equal(1);
+      });
+
+      it('should find only "Jane" when "John" was found and deleted with db.findOneAndDelete()', () => {
+        db.findOneAndDelete({ first_name: 'John' });
+        expect(db.find({ _id: 0 })).to.be.equal(null);
+      });
+
+      it('should find only "Jane" when "John" was found and deleted with db.$findOneAndDelete()', async () => {
+        await db.$findOneAndDelete({ first_name: 'John' });
+        expect(db.find({ _id: 0 })).to.be.equal(null);
       });
     });
 

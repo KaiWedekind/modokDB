@@ -323,9 +323,11 @@ Brain.prototype.$findOne = function $findOne(object) {
 // Synchronous
 Brain.prototype.findOneAndDelete = function findOneAndDelete(object) {
   if (isObject(object)) {
-  var result = findOne(object);
-  if(result != null) deleteOneById(result._id);
-  return result;
+    const result = this.findOne(object);
+    if (result != null) this.deleteOneById(result._id);
+    return result;
+  }
+  return null;
 };
 
 // Asynchronous
@@ -623,6 +625,7 @@ Brain.prototype.$deleteOneById = function $deleteOne(index) {
   });
 };
 
+
 // TODO //
 
 /*
@@ -631,9 +634,6 @@ Brain.prototype.findAndModify = function findAndModify(object) {
   return object;
 };
 
-Brain.prototype.findOneAndDelete = function findOneAndDelete(object) {
-  return object;
-};
 
 Brain.prototype.findOneAndReplace = function findOneAndReplace(object) {
   return object;
@@ -649,6 +649,5 @@ Brain.prototype.getIndexes = function getIndexes() {
 */
 
 const main = Brain;
-
 export default main;
 module.exports = main; // for CommonJS compatibility
