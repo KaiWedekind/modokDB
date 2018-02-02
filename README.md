@@ -159,6 +159,19 @@ db.$findOne({ last_name: 'Doe' }).then((users) => {
 });
 ```
 
+#### db.findOneAndDelete - Synchronous (_returns database entry / null)
+```javascript
+const users = db.findOneAndDelete({ last_name: 'Doe' });
+console.log('User', users)
+```
+
+#### db.$findOneAndDelete - Asynchronous (_returns database entry / null)
+```javascript
+db.$findOneAndDelete({ last_name: 'Doe' }).then((users) => {
+    console.log('User', users);
+});
+```
+
 #### db.update - Synchronous (_returns database entry / null)
 ```javascript
 const updatedUsers = db.update({ first_name: 'Jane' }, { age: 45, last_name: 'Mayer' });
@@ -336,8 +349,14 @@ db.$renameCollection('accounts').then((newDB) => {
             <img src="https://avatars0.githubusercontent.com/u/12070900?v=4&s=460" width="100px;"/><br />
             <sub><a href="https://www.kaiwedekind.com/" target="_blank">Kai Wedekind</a></sub>
         </td>
+        <td align="center">
+            <img src="https://avatars0.githubusercontent.com/u/35994116?s=96&v=4" width="100px;"/><br />
+            <sub><a href="https://github.com/thomasreinecke" target="_blank">Thomas Reinecke</a></sub>
+        </td>      
     <tr>
 </table>
+
+
 
 ## LICENSE
 

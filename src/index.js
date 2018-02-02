@@ -183,6 +183,7 @@ Brain.prototype.$insertMany = function $insertMany(object) {
   });
 };
 
+
 /**
  * find / $find
  * Selects documents in a collection or view and returns a cursor to the selected documents.
@@ -307,6 +308,35 @@ Brain.prototype.$findOne = function $findOne(object) {
     resolve(this.findOne(object));
   });
 };
+
+
+/**
+ * findOneAndDelete / $findOneAndDelete
+ * Returns one document that satisfies the specified query criteria on the collection or view.
+ * If multiple documents satisfy the query, this method returns the first document according to
+ * the natural order which reflects the order of documents on the disk. In capped collections,
+ * natural order is the same as insertion order. If no document satisfies the query,
+ * the method returns null.
+ * The Document that was found gets deleted out of the collection or view.
+ */
+
+// Synchronous
+Brain.prototype.findOneAndDelete = function findOneAndDelete(object) {
+  if (isObject(object)) {
+    const result = this.findOne(object);
+    if (result != null) this.deleteOneById(result._id);
+    return result;
+  }
+  return null;
+};
+
+// Asynchronous
+Brain.prototype.$findOneAndDelete = function $findOneAndDelete(object) {
+  return new Promise((resolve) => {
+    resolve(this.findOneAndDelete(object));
+  });
+};
+
 
 /**
  * update / $update
@@ -595,6 +625,7 @@ Brain.prototype.$deleteOneById = function $deleteOne(index) {
   });
 };
 
+
 // TODO //
 
 /*
@@ -603,9 +634,6 @@ Brain.prototype.findAndModify = function findAndModify(object) {
   return object;
 };
 
-Brain.prototype.findOneAndDelete = function findOneAndDelete(object) {
-  return object;
-};
 
 Brain.prototype.findOneAndReplace = function findOneAndReplace(object) {
   return object;
@@ -621,6 +649,5 @@ Brain.prototype.getIndexes = function getIndexes() {
 */
 
 const main = Brain;
-
 export default main;
 module.exports = main; // for CommonJS compatibility
