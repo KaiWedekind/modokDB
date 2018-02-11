@@ -314,6 +314,10 @@ describe('modokDB', () => {
         await db.$findOneAndDelete({ first_name: 'John' });
         expect(db.find({ _id: 0 })).to.be.equal(null);
       });
+
+      it('should return null when passing string to db.$findOneAndDelete()', async () => {
+        expect(db.findOneAndDelete('Invalid')).to.be.equal(null);
+      });
     });
 
     describe('update / $update', () => {
@@ -751,6 +755,32 @@ describe('modokDB', () => {
         expect(db.count()).to.be.equal(3);
         await expect(db.$deleteOneById(2)).to.eventually.be.equal(true);
         expect(db.count()).to.be.equal(2);
+      });
+    });
+
+    describe('Check getIndexes / $getIndexes', () => {
+      beforeEach(() => {
+        db.insertMany([
+          { _id: 'b8e70d8a-0da9-412f-9603-256ad9f363bd', first_name: 'John' },
+          { _id: 'ffbc3ada-dfa4-4a76-a711-659ef3a6ca4e', first_name: 'Jane' },
+          { _id: '1ae129d2-fccc-480c-9ad7-6289a9c205f7', first_name: 'Joe' },
+        ]);
+      });
+
+      it('should return the indexes with db.getIndexes()', async () => {
+        expect(db.getIndexes()).to.have.deep.members([
+          'b8e70d8a-0da9-412f-9603-256ad9f363bd',
+          'ffbc3ada-dfa4-4a76-a711-659ef3a6ca4e',
+          '1ae129d2-fccc-480c-9ad7-6289a9c205f7',
+        ]);
+      });
+
+      it('sshould return the indexes with db.$getIndexes()', async () => {
+        await expect(db.$getIndexes()).to.eventually.have.deep.members([
+          'b8e70d8a-0da9-412f-9603-256ad9f363bd',
+          'ffbc3ada-dfa4-4a76-a711-659ef3a6ca4e',
+          '1ae129d2-fccc-480c-9ad7-6289a9c205f7',
+        ]);
       });
     });
 

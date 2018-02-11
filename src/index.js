@@ -574,8 +574,11 @@ Brain.prototype.$deleteOne = function $deleteOne(object) {
 };
 
 /**
+ * deleteMany / $deleteMany
  * Removes all documents that match the filter from a collection.
  */
+
+// Synchronous
 Brain.prototype.deleteMany = function deleteMany(object) {
   if (isObject(object)) {
     const keys = Object.keys(object);
@@ -606,45 +609,71 @@ Brain.prototype.deleteMany = function deleteMany(object) {
   return false;
 };
 
+// Asynchronous
 Brain.prototype.$deleteMany = function $deleteMany(object) {
   return new Promise((resolve) => {
     resolve(this.deleteMany(object));
   });
 };
 
+/**
+ * delete / $delete
+ * Removes all documents that match the filter from a collection.
+ */
+
+// Synchronous
 Brain.prototype.delete = Brain.prototype.deleteMany;
+// Asynchronous
 Brain.prototype.$delete = Brain.prototype.$deleteMany;
 
+/**
+ * deleteOneById / $deleteOneById
+ * Removes a document that match the document ID.
+ */
+
+// Synchronous
 Brain.prototype.deleteOneById = function deleteOne(index) {
   return this.store.delete(index);
 };
 
+// Asynchronous
 Brain.prototype.$deleteOneById = function $deleteOne(index) {
   return new Promise((resolve) => {
     resolve(this.deleteOneById(index));
   });
 };
 
+/**
+ * getIndexes / $getIndexes
+ * Get all indexes.
+ */
+Brain.prototype.getIndexes = function getIndexes() {
+  return Array.from(this.store.keys());
+};
+
+Brain.prototype.$getIndexes = function $getIndexes() {
+  return new Promise((resolve) => {
+    resolve(this.getIndexes());
+  });
+};
+
+/**
+ * findAndModify / $ findAndModify
+ * Modifies and returns a single document.
+ * By default, the returned document does not include the modifications made on the update.
+ * To return the document with the modifications made on the update, use the new option.
+ */
 
 // TODO //
-
 /*
-
 Brain.prototype.findAndModify = function findAndModify(object) {
   return object;
 };
-
-
 Brain.prototype.findOneAndReplace = function findOneAndReplace(object) {
   return object;
 };
-
 Brain.prototype.findOneAndUpdate = function findOneAndUpdate(object) {
   return object;
-};
-
-Brain.prototype.getIndexes = function getIndexes() {
-  return Array.from(this.store.keys());
 };
 */
 
